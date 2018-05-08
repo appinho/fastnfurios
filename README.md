@@ -2,11 +2,13 @@
 
 ## FastnFurios ReadMe
 
-### Overview
+### System Architecture
 
 <p align="center">
   <img src="./imgs/overview.png">
 </p>
+
+The code that you will need to modify for the project will be contained entirely within [here](./ros/src/). Within this directory, you will find the following ROS packages:
 
 ### Requirements
 
