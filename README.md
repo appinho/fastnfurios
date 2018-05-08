@@ -8,7 +8,31 @@
   <img src="./imgs/overview.png">
 </p>
 
-The code that you will need to modify for the project will be contained entirely within [here](./ros/src/). Within this directory, you will find the following ROS packages:
+The code that you will need to modify for the project will be contained entirely within [here](./ros/src/).  
+Within this directory, you will find the following ROS packages that should be completed in the following order:
+
+1. Planning: [Waypoint Updater Node](./ros/src/waypoint_updater) - (Partial): Complete a partial waypoint updater which subscribes to /base_waypoints and /current_pose and publishes to /final_waypoints
+
+<p align="center">
+  <img src="./imgs/waypoint-updater-ros-graph.png">
+</p>
+
+2. Control: [DBW Node](./ros/src/twist_controller) - Once your waypoint updater is publishing /final_waypoints, the waypoint_follower node will start publishing messages to the/twist_cmd topic. At this point, you have everything needed to build the dbw_node. After completing this step, the car should drive in the simulator, ignoring the traffic lights.
+
+<p align="center">
+  <img src="./imgs/dbw-node-ros-graph.png">
+</p>
+
+3. Perception: [Traffic Light Detection](./ros/src/tl_detector) - This can be split into 2 parts:
+
+* Detection: Detect the traffic light and its color from the /image_color. The topic /vehicle/traffic_lights contains the exact location and status of all traffic lights in simulator, so you can test your output.
+* Waypoint publishing: Once you have correctly identified the traffic light and determined its position, you can convert it to a waypoint index and publish it.
+
+<p align="center">
+  <img src="./imgs/tl-detector-ros-graph.png">
+</p>
+
+4. Planning: [Waypoint Updater](./ros/src/waypoint_updater) -  (Full): Use /traffic_waypoint to change the waypoint target velocities before publishing to /final_waypoints. Your car should now stop at red traffic lights and move when they are green.
 
 ### Requirements
 
