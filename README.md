@@ -1,6 +1,12 @@
 # Udacity SDC Final Project by FastnFurios
 
-## FastnFurios ReadNe
+## FastnFurios ReadMe
+
+### Overview
+
+<p align="center">
+  <img src="./imgs/overview.png">
+</p>
 
 ### Requirements
 
