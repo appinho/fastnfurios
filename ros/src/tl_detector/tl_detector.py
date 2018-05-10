@@ -51,6 +51,10 @@ class TLDetector(object):
         self.last_wp = -1
         self.state_count = 0
 
+        # Define range in which traffic lights can be seen
+        self.range = 150
+
+
         rospy.spin()
 
     # Stores subscribed current_pose of car
@@ -149,9 +153,6 @@ class TLDetector(object):
 
             #TODO find the closest visible traffic light (if one exists)
             
-            # Define range in which traffic lights can be seen
-            ran = 150
-
             # Get X,Y and yaw of car
             x_car = self.pose.pose.position.x
             y_car = self.pose.pose.position.y
@@ -170,10 +171,7 @@ class TLDetector(object):
                 dist = self.get_distance(x_tl, y_tl, x_car, y_car) 
 
                 # If traffic light is within region of car
-                if dist < ran:
-
-                    # Print distance
-                    print(i, dist)
+                if dist < self.range:
 
                     # Assign traffic light
                     light = traffic_light
@@ -182,7 +180,10 @@ class TLDetector(object):
 
         if light:
             state = self.get_light_state(light)
-            light_wp = -1
+            if(state is TrafficLight.RED):
+                light_wp = 1
+            else:
+                light_wp = -1
             return light_wp, state
 
         self.waypoints = None
