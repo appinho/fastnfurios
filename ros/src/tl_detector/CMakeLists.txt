@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   styx_msgs
   waypoint_updater
+  tf
 )
 
 ## System dependencies are found with CMake's conventions

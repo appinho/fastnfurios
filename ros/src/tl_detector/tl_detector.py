@@ -7,6 +7,7 @@ from styx_msgs.msg import Lane
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 from light_classification.tl_classifier import TLClassifier
+from tf.transformations import euler_from_quaternion
 import tf
 import cv2
 import yaml
@@ -139,7 +140,13 @@ class TLDetector(object):
             car_position = self.get_closest_waypoint(self.pose.pose)
 
         #TODO find the closest visible traffic light (if one exists)
-
+        x = self.pose.pose.position.x
+        y = self.pose.pose.position.y
+        quat = self.pose.pose.orientation
+        quat_list = [quat.x, quat.y, quat.z, quat.w]
+        (roll, pitch, yaw) = euler_from_quaternion(quat_list)
+        print(x, y, yaw)
+        #TODO end
         if light:
             state = self.get_light_state(light)
             return light_wp, state
