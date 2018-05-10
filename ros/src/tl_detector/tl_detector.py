@@ -11,6 +11,7 @@ from tf.transformations import euler_from_quaternion
 import tf
 import cv2
 import yaml
+from math import sqrt
 
 STATE_COUNT_THRESHOLD = 3
 
@@ -52,15 +53,19 @@ class TLDetector(object):
 
         rospy.spin()
 
+    # Stores subscribed current_pose of car
     def pose_cb(self, msg):
         self.pose = msg
 
+    # Stores subscribed base_waypoints of car
     def waypoints_cb(self, waypoints):
         self.waypoints = waypoints
 
+    # Stores subscribed list of traffic lights tha are in the map
     def traffic_cb(self, msg):
         self.lights = msg.lights
 
+    # Propagates sensor image
     def image_cb(self, msg):
         """Identifies red lights in the incoming camera image and publishes the index
             of the waypoint closest to the red light's stop line to /traffic_waypoint
@@ -123,6 +128,9 @@ class TLDetector(object):
         #Get classification
         return self.light_classifier.get_classification(cv_image)
 
+    def get_distance(self, x1, y1, x2, y2):
+        return sqrt( (x1-x2)**2 + (y1-y2)**2 )
+
     def process_traffic_lights(self):
         """Finds closest visible traffic light, if one exists, and determines its
             location and color
@@ -139,17 +147,44 @@ class TLDetector(object):
         if(self.pose):
             car_position = self.get_closest_waypoint(self.pose.pose)
 
-        #TODO find the closest visible traffic light (if one exists)
-        x = self.pose.pose.position.x
-        y = self.pose.pose.position.y
-        quat = self.pose.pose.orientation
-        quat_list = [quat.x, quat.y, quat.z, quat.w]
-        (roll, pitch, yaw) = euler_from_quaternion(quat_list)
-        print(x, y, yaw)
-        #TODO end
+            #TODO find the closest visible traffic light (if one exists)
+            
+            # Define range in which traffic lights can be seen
+            ran = 150
+
+            # Get X,Y and yaw of car
+            x_car = self.pose.pose.position.x
+            y_car = self.pose.pose.position.y
+            quat = self.pose.pose.orientation
+            quat_list = [quat.x, quat.y, quat.z, quat.w]
+            (roll_car, pitch_car, yaw_car) = euler_from_quaternion(quat_list)
+
+            # Loop over list of traffic lights to check distance to the car
+            for i, traffic_light in enumerate(self.lights):
+
+                # Get position of traffic light
+                x_tl = traffic_light.pose.pose.position.x
+                y_tl = traffic_light.pose.pose.position.y
+
+                # Get distance from car to traffic ligh
+                dist = self.get_distance(x_tl, y_tl, x_car, y_car) 
+
+                # If traffic light is within region of car
+                if dist < ran:
+
+                    # Print distance
+                    print(i, dist)
+
+                    # Assign traffic light
+                    light = traffic_light
+
+            #TODO end
+
         if light:
             state = self.get_light_state(light)
+            light_wp = -1
             return light_wp, state
+
         self.waypoints = None
         return -1, TrafficLight.UNKNOWN
 
