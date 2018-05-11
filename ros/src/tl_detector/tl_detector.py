@@ -150,8 +150,6 @@ class TLDetector(object):
         stop_line_positions = self.config['stop_line_positions']
         if(self.pose):
             car_position = self.get_closest_waypoint(self.pose.pose)
-
-            #TODO find the closest visible traffic light (if one exists)
             
             # Get X,Y and yaw of car
             x_car = self.pose.pose.position.x
@@ -176,14 +174,14 @@ class TLDetector(object):
                     # Assign traffic light
                     light = traffic_light
 
-            #TODO end
 
         if light:
+            
+            # Get light status
             state = self.get_light_state(light)
-            if(state is TrafficLight.RED):
-                light_wp = 1
-            else:
-                light_wp = -1
+
+            # TODO Integrate waypoints
+            light_wp = -1
             return light_wp, state
 
         self.waypoints = None
