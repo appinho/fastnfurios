@@ -54,6 +54,11 @@ class TLDetector(object):
         # Define range in which traffic lights can be seen
         self.range = 150
 
+        # Stores accumulated processing time of image callback
+        self.image_cb_total_time = 0.0
+
+        # Stores how often image callback has been called
+        self.image_cb_counter = 0
 
         rospy.spin()
 
@@ -78,6 +83,10 @@ class TLDetector(object):
             msg (Image): image from car-mounted camera
 
         """
+
+        # Store current time
+        t1 = rospy.get_time()
+
         self.has_image = True
         self.camera_image = msg
         light_wp, state = self.process_traffic_lights()
@@ -99,6 +108,14 @@ class TLDetector(object):
         else:
             self.upcoming_red_light_pub.publish(Int32(self.last_wp))
         self.state_count += 1
+
+        # Store current time
+        t2 = rospy.get_time()
+
+        # Print average processing time for this callback
+        self.image_cb_total_time += (t2 - t1)
+        self.image_cb_counter += 1
+        print("Av. proc. time TL Detector: ", self.image_cb_total_time / self.image_cb_counter)
 
     def get_closest_waypoint(self, pose):
         """Identifies the closest path waypoint to the given position
