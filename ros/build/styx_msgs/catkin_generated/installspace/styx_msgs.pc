@@ -1,0 +1,8 @@
+prefix=/home/student/01_Udacity/01_fastnFurious/ros/install
+
+Name: styx_msgs
+Description: Description of styx_msgs
+Version: 0.0.0
+Cflags: -I/home/student/01_Udacity/01_fastnFurious/ros/install/include
+Libs: -L/home/student/01_Udacity/01_fastnFurious/ros/install/lib 
+Requires: 

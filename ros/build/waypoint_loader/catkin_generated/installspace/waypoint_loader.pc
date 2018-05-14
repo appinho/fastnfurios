@@ -1,0 +1,8 @@
+prefix=/home/student/01_Udacity/01_fastnFurious/ros/install
+
+Name: waypoint_loader
+Description: Description of waypoint_loader
+Version: 0.0.0
+Cflags: 
+Libs: -L/home/student/01_Udacity/01_fastnFurious/ros/install/lib 
+Requires: 
