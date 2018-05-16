@@ -10,12 +10,15 @@ class TLClassifier(object):
         self.max_side = 45
 
         # Define minimum and maximum hsv values for red, yellow and green
-        self.lower_red = np.array([0,150,150])
-        self.upper_red = np.array([20,255,255])
+        self.lower_red = np.array([0,120,150])
+        self.upper_red = np.array([25,255,255])
         self.lower_yel = np.array([30,150,150])
         self.upper_yel = np.array([50,255,255])
         self.lower_gre = np.array([60,150,150])
         self.upper_gre = np.array([90,255,255])
+        self.count_thres = 100
+
+        self.counter = 0
 
     def check_for_colored_clusters(self, thresh_image):
         """Determines if a properly sized traffic light has been found 
@@ -73,23 +76,42 @@ class TLClassifier(object):
         mask_yel = cv2.inRange(hsv, self.lower_yel, self.upper_yel)
         mask_gre = cv2.inRange(hsv, self.lower_gre, self.upper_gre)
 
+        # Debug storage
+        if(self.counter % 10 is 0):
+            cv2.imwrite('test_images/red' + str(self.counter) + '.png',mask_red)
+            cv2.imwrite('test_images/yel' + str(self.counter) + '.png',mask_yel)
+            cv2.imwrite('test_images/gre' + str(self.counter) + '.png',mask_gre)
+        self.counter +=1
+
+        # Count white pixels
+        count_red = cv2.countNonZero(mask_red)
+        count_yel = cv2.countNonZero(mask_yel)
+        count_gre = cv2.countNonZero(mask_gre)
+        
+        #print(count_red, count_yel, count_gre)
+
         # Find traffic light clusters within this thresholded colorspace
-        has_red_lights = self.check_for_colored_clusters(mask_red)
-        has_yel_lights = self.check_for_colored_clusters(mask_yel)
-        has_gre_lights = self.check_for_colored_clusters(mask_gre)
+        has_red_lights = (count_red > self.count_thres)
+        has_yel_lights = (count_yel > self.count_thres)
+        has_gre_lights = (count_gre > self.count_thres)
+
+        # More reliable method but slower
+        #has_red_lights = self.check_for_colored_clusters(mask_red)
+        #has_yel_lights = self.check_for_colored_clusters(mask_yel)
+        #has_gre_lights = self.check_for_colored_clusters(mask_gre)
 
         #print(has_red_lights, has_yel_lights ,has_gre_lights)
 
         # Return the current traffic light state
         if(has_red_lights and not has_yel_lights and not has_gre_lights):
-            print("Red")
+            #print("Red")
             return TrafficLight.RED
         elif(not has_red_lights and has_yel_lights and not has_gre_lights):
-            print("Yellow")
+            #print("Yellow")
             return TrafficLight.YELLOW
         elif(not has_red_lights and not has_yel_lights and has_gre_lights):
-            print("Green")
+            #print("Green")
             return TrafficLight.GREEN
         else:
-            print("No traffic light")
+            #print("No traffic light")
             return TrafficLight.UNKNOWN
