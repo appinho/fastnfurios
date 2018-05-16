@@ -77,11 +77,11 @@ class TLClassifier(object):
         mask_gre = cv2.inRange(hsv, self.lower_gre, self.upper_gre)
 
         # Debug storage
-        if(self.counter % 10 is 0):
-            cv2.imwrite('test_images/red' + str(self.counter) + '.png',mask_red)
-            cv2.imwrite('test_images/yel' + str(self.counter) + '.png',mask_yel)
-            cv2.imwrite('test_images/gre' + str(self.counter) + '.png',mask_gre)
-        self.counter +=1
+        #if(self.counter % 10 is 0):
+        #    cv2.imwrite('test_images/red' + str(self.counter) + '.png',mask_red)
+        #    cv2.imwrite('test_images/yel' + str(self.counter) + '.png',mask_yel)
+        #    cv2.imwrite('test_images/gre' + str(self.counter) + '.png',mask_gre)
+        #self.counter +=1
 
         # Count white pixels
         count_red = cv2.countNonZero(mask_red)
