@@ -18,7 +18,10 @@ STATE_COUNT_THRESHOLD = 3
 
 class TLDetector(object):
     def __init__(self):
+
+        # Exchange comment will let you see the estimated traffic light color and processing time 
         rospy.init_node('tl_detector')
+        #rospy.init_node('tl_detector', log_level=rospy.DEBUG)
 
         self.pose = None
         self.waypoints = None
@@ -126,7 +129,8 @@ class TLDetector(object):
         self.image_cb_total_time += (t2 - t1)
         self.image_cb_counter += 1
         self.has_image = False
-        #print("Av. proc. time TL Detector: ", self.image_cb_total_time / self.image_cb_counter)
+        rospy.logdebug("TL Detector Current proc. time : %f s", (t2 - t1))
+        rospy.logdebug("TL Detector Average proc. time : %f s", self.image_cb_total_time / self.image_cb_counter)
 
     def get_closest_waypoint(self, x, y):
         closest_idx = self.waypoint_tree.query([x, y], 1)[1]
@@ -200,6 +204,7 @@ class TLDetector(object):
             #print("Traffic light found:", car_wp_idx, line_wp_idx, state)
             return line_wp_idx, state
 
+        rospy.logdebug("No traffic light within sensor image")
         self.waypoints = None
         return -1, TrafficLight.UNKNOWN
 
