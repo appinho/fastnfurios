@@ -152,7 +152,7 @@ class TLDetector(object):
 
         #Get classification
         classified_state = self.light_classifier.get_classification(cv_image)
-        rospy.logdebug("Light state" + light.state + ", classified state: " + classified_state)
+        rospy.logdebug("Light state %s, classified state: %s", light.state, classified_state)
         return classified_state
 
     def get_distance(self, x1, y1, x2, y2):
