@@ -7,9 +7,7 @@ from styx_msgs.msg import Lane
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 from light_classification.tl_classifier import TLClassifier
-from tf.transformations import euler_from_quaternion
 import tf
-import cv2
 import yaml
 from math import sqrt
 from scipy.spatial import KDTree
@@ -83,6 +81,7 @@ class TLDetector(object):
 
     # Stores subscribed list of traffic lights tha are in the map
     def traffic_cb(self, msg):
+        rospy.logdebug("Light 0 state" + msg.lights[0].state)
         self.lights = msg.lights
 
     # Stores sensor image
@@ -169,7 +168,6 @@ class TLDetector(object):
         """
         light = None
         line_wp_idx = -1
-        car_wp_idx = -1
 
         # List of positions that correspond to the line to stop in front of for a given intersection
         stop_line_positions = self.config['stop_line_positions']
@@ -182,20 +180,20 @@ class TLDetector(object):
 
             # Set maximum front distance to next traffic light
             max_dist = self.range
+            # or we can use max_dist = len(self.waypoints.waypoints)
 
             # Loop over list of traffic lights to check distance to the car
             for i, traffic_light in enumerate(self.lights):
-
+                # Get stop line waypoint index
                 line = stop_line_positions[i]
                 temp_wp_idx = self.get_closest_waypoint(line[0], line[1])
-
+                # Find closest stop line waypoint index
                 d = temp_wp_idx - car_wp_idx
 
-                if d >= 0 and d < max_dist:
+                if 0 <= d < max_dist:
                     max_dist = d
                     light = traffic_light
                     line_wp_idx = temp_wp_idx
-
 
         if light:
             
