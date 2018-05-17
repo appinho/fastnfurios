@@ -12,12 +12,16 @@ import tf
 import cv2
 import yaml
 from math import sqrt
+from scipy.spatial import KDTree
 
 STATE_COUNT_THRESHOLD = 3
 
 class TLDetector(object):
     def __init__(self):
+
+        # Exchange comment will let you see the estimated traffic light color and processing time 
         rospy.init_node('tl_detector')
+        #rospy.init_node('tl_detector', log_level=rospy.DEBUG)
 
         self.pose = None
         self.waypoints = None
@@ -26,14 +30,6 @@ class TLDetector(object):
 
         sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         sub2 = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
-
-        '''
-        /vehicle/traffic_lights provides you with the location of the traffic light in 3D map space and
-        helps you acquire an accurate ground truth data source for the traffic light
-        classifier by sending the current color state of all traffic lights in the
-        simulator. When testing on the vehicle, the color state will not be available. You'll need to
-        rely on the position of the light and the camera image to predict it.
-        '''
         sub3 = rospy.Subscriber('/vehicle/traffic_lights', TrafficLightArray, self.traffic_cb)
         sub6 = rospy.Subscriber('/image_color', Image, self.image_cb)
 
@@ -52,7 +48,7 @@ class TLDetector(object):
         self.state_count = 0
 
         # Define range in which traffic lights can be seen
-        self.range = 150
+        self.range = 100
 
         # Stores accumulated processing time of image callback
         self.image_cb_total_time = 0.0
@@ -60,7 +56,20 @@ class TLDetector(object):
         # Stores how often image callback has been called
         self.image_cb_counter = 0
 
-        rospy.spin()
+        # Boolean if image is currently available
+        self.has_image = False
+
+        self.loop()
+        
+    def loop(self):        
+        # loop implemented rather than spin to control the frequency precisely
+        rate = rospy.Rate(5)
+        
+        while not rospy.is_shutdown():
+            # if pose and base_waypoints are filled
+            if self.has_image:
+                self.process_image()
+            rate.sleep()
 
     # Stores subscribed current_pose of car
     def pose_cb(self, msg):
@@ -69,13 +78,20 @@ class TLDetector(object):
     # Stores subscribed base_waypoints of car
     def waypoints_cb(self, waypoints):
         self.waypoints = waypoints
+        waypoints_2d = [[waypoint.pose.pose.position.x, waypoint.pose.pose.position.y] for waypoint in waypoints.waypoints]
+        self.waypoint_tree = KDTree(waypoints_2d)
 
     # Stores subscribed list of traffic lights tha are in the map
     def traffic_cb(self, msg):
         self.lights = msg.lights
 
-    # Propagates sensor image
+    # Stores sensor image
     def image_cb(self, msg):
+        self.has_image = True
+        self.camera_image = msg
+
+    # Process sensor image
+    def process_image(self):
         """Identifies red lights in the incoming camera image and publishes the index
             of the waypoint closest to the red light's stop line to /traffic_waypoint
 
@@ -86,9 +102,6 @@ class TLDetector(object):
 
         # Store current time
         t1 = rospy.get_time()
-
-        self.has_image = True
-        self.camera_image = msg
         light_wp, state = self.process_traffic_lights()
 
         '''
@@ -115,20 +128,13 @@ class TLDetector(object):
         # Print average processing time for this callback
         self.image_cb_total_time += (t2 - t1)
         self.image_cb_counter += 1
-        print("Av. proc. time TL Detector: ", self.image_cb_total_time / self.image_cb_counter)
+        self.has_image = False
+        rospy.logdebug("TL Detector Current proc. time : %f s", (t2 - t1))
+        rospy.logdebug("TL Detector Average proc. time : %f s", self.image_cb_total_time / self.image_cb_counter)
 
-    def get_closest_waypoint(self, pose):
-        """Identifies the closest path waypoint to the given position
-            https://en.wikipedia.org/wiki/Closest_pair_of_points_problem
-        Args:
-            pose (Pose): position to match a waypoint to
-
-        Returns:
-            int: index of the closest waypoint in self.waypoints
-
-        """
-        #TODO implement
-        return 0
+    def get_closest_waypoint(self, x, y):
+        closest_idx = self.waypoint_tree.query([x, y], 1)[1]
+        return closest_idx
 
     def get_light_state(self, light):
         """Determines the current color of the traffic light
@@ -162,45 +168,43 @@ class TLDetector(object):
 
         """
         light = None
+        line_wp_idx = -1
+        car_wp_idx = -1
 
         # List of positions that correspond to the line to stop in front of for a given intersection
         stop_line_positions = self.config['stop_line_positions']
         if(self.pose):
-            car_position = self.get_closest_waypoint(self.pose.pose)
-            
-            # Get X,Y and yaw of car
+
+            # Get waypoint index of the car
             x_car = self.pose.pose.position.x
             y_car = self.pose.pose.position.y
-            quat = self.pose.pose.orientation
-            quat_list = [quat.x, quat.y, quat.z, quat.w]
-            (roll_car, pitch_car, yaw_car) = euler_from_quaternion(quat_list)
+            car_wp_idx = self.get_closest_waypoint(x_car, y_car)
+
+            # Set maximum front distance to next traffic light
+            max_dist = self.range
 
             # Loop over list of traffic lights to check distance to the car
             for i, traffic_light in enumerate(self.lights):
 
-                # Get position of traffic light
-                x_tl = traffic_light.pose.pose.position.x
-                y_tl = traffic_light.pose.pose.position.y
+                line = stop_line_positions[i]
+                temp_wp_idx = self.get_closest_waypoint(line[0], line[1])
 
-                # Get distance from car to traffic ligh
-                dist = self.get_distance(x_tl, y_tl, x_car, y_car) 
+                d = temp_wp_idx - car_wp_idx
 
-                # If traffic light is within region of car
-                if dist < self.range:
-
-                    # Assign traffic light
+                if d >= 0 and d < max_dist:
+                    max_dist = d
                     light = traffic_light
+                    line_wp_idx = temp_wp_idx
 
 
         if light:
             
             # Get light status
             state = self.get_light_state(light)
+            #print("Traffic light found:", car_wp_idx, line_wp_idx, state)
+            return line_wp_idx, state
 
-            # TODO Integrate waypoints
-            light_wp = -1
-            return light_wp, state
-
+        rospy.logdebug("No traffic light within sensor image")
         self.waypoints = None
         return -1, TrafficLight.UNKNOWN
 
