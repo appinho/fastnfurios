@@ -64,7 +64,7 @@ class TLClassifier(object):
         has_yel_lights = self.check_connected_cluster(thresh_yel)
         has_gre_lights = self.check_connected_cluster(thresh_gre)
 
-        return [has_red_lights, has_yel_lights, has_gre_lights]
+        return has_red_lights, has_yel_lights, has_gre_lights
 
     def check_for_colors(self, thresh_red, thresh_yel, thresh_gre):
         """Determines if tresholded colored has more than color_thres hits
@@ -80,7 +80,7 @@ class TLClassifier(object):
         has_yel_lights = (count_yel > self.min_num_white_pixs)
         has_gre_lights = (count_gre > self.min_num_white_pixs)
 
-        return [has_red_lights, has_yel_lights, has_gre_lights]
+        return has_red_lights, has_yel_lights, has_gre_lights
 
     def get_classification(self, image):
         """Determines the color of the traffic light in the image
@@ -104,22 +104,22 @@ class TLClassifier(object):
         # True: Also check shape of colors to match a traffic light (Slower)
         # False: Simple count of colors (Faster)
         if(self.check_shape):
-            [has_red_lights, has_yel_lights, has_gre_lights] = \
+            has_red_lights, has_yel_lights, has_gre_lights = \
                 self.check_for_colored_traffic_light_shapes(mask_red, mask_yel, mask_gre)
         else:
-            [has_red_lights, has_yel_lights, has_gre_lights] = \
+            has_red_lights, has_yel_lights, has_gre_lights = \
                 self.check_for_colors(mask_red, mask_yel, mask_gre)
 
         # Return the current traffic light state
         if(has_red_lights and not has_yel_lights and not has_gre_lights):
-            rospy.logdebug("Traffic Light is: RED")
+            rospy.loginfo("Traffic Light is: RED")
             return TrafficLight.RED
         elif(not has_red_lights and has_yel_lights and not has_gre_lights):
-            rospy.logdebug("Traffic Light is: YELLOW")
+            rospy.loginfo("Traffic Light is: YELLOW")
             return TrafficLight.YELLOW
         elif(not has_red_lights and not has_yel_lights and has_gre_lights):
-            rospy.logdebug("Traffic Light is: GREEN")
+            rospy.loginfo("Traffic Light is: GREEN")
             return TrafficLight.GREEN
         else:
-            rospy.logdebug("Bad angle to traffic light")
+            rospy.loginfo("Bad angle to traffic light")
             return TrafficLight.UNKNOWN
