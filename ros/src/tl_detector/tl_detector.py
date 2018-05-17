@@ -81,7 +81,6 @@ class TLDetector(object):
 
     # Stores subscribed list of traffic lights tha are in the map
     def traffic_cb(self, msg):
-        rospy.logdebug("Light 0 state" + msg.lights[0].state)
         self.lights = msg.lights
 
     # Stores sensor image
@@ -152,7 +151,9 @@ class TLDetector(object):
         cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
 
         #Get classification
-        return self.light_classifier.get_classification(cv_image)
+        classified_state = self.light_classifier.get_classification(cv_image)
+        rospy.logdebug("Light state" + light.state + ", classified state: " + classified_state)
+        return classified_state
 
     def get_distance(self, x1, y1, x2, y2):
         return sqrt( (x1-x2)**2 + (y1-y2)**2 )
