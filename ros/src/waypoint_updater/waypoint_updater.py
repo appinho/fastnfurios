@@ -109,19 +109,11 @@ class WaypointUpdater(object):
             end_velocity = 0
             start_index = 0
             stop_index = local_waypoint - 8
-            distance_to_stop = self.distance(waypoints,start_index,stop_index)
-            brake_time = (start_velocity - end_velocity)/MAX_ACC
-            while distance_to_stop > 0.5*MAX_ACC*brake_time**2:
-                start_index += 1
-                distance_to_stop = self.distance(waypoints,start_index,stop_index)
-                start_velocity = self.get_waypoint_velocity(waypoints[start_index])
-                brake_time = (start_velocity - end_velocity)/MAX_ACC
-            start_index -= 10
             index_diff = stop_index-start_index
             vel_diff = end_velocity-start_velocity
             if start_index < 0:
                 start_index = 0
-            if stop_index-start_index < 4:
+            if index_diff < 4:
                 pos = [0,1,2,3,4]
             else:
                 pos = [start_index, start_index+index_diff/4, start_index+index_diff/2, start_index+index_diff*3/4, stop_index]
