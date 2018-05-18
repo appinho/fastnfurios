@@ -85,7 +85,7 @@ class WaypointUpdater(object):
             start_velocity = self.get_waypoint_velocity(waypoints[0])
             end_velocity = rospy.get_param('/waypoint_loader/velocity')*1000/3600 
             start_index = 0
-            stop_index = LOOKAHEAD_WPS-1
+            stop_index = len(waypoints)-1
             distance_to_max_vel = self.distance(waypoints,start_index,stop_index)
             acc_time = (end_velocity - start_velocity)/MAX_ACC
             while distance_to_max_vel > 0.5*MAX_ACC*acc_time**2:
