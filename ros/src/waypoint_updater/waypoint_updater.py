@@ -37,7 +37,7 @@ class WaypointUpdater(object):
 
     def loop(self):
         # loop implemented rather than spin to control the frequency precisely
-        rate = rospy.Rate(5)  # 50Hz
+        rate = rospy.Rate(50)  # 50Hz
 
         while not rospy.is_shutdown():
             # if pose and base_waypoints are filled
@@ -101,8 +101,6 @@ class WaypointUpdater(object):
             cubic_fn = interp1d(pos,vel,kind='cubic',bounds_error=False,fill_value="extrapolate")
             for i in range(0,stop_index):
                 self.set_waypoint_velocity(waypoints,i,cubic_fn(i))
-            for i in range(stop_index+1,LOOKAHEAD_WPS-1):
-                self.set_waypoint_velocity(waypoints,i,end_velocity)
         if self.traffic_waypoint - self.closest_idx > 8:
             local_waypoint = self.traffic_waypoint - self.closest_idx
             start_velocity = self.get_waypoint_velocity(waypoints[0])
@@ -120,9 +118,7 @@ class WaypointUpdater(object):
             vel = [start_velocity, start_velocity+vel_diff/4, start_velocity+vel_diff/2, start_velocity+vel_diff*3/4, end_velocity]
             cubic_fn = interp1d(pos,vel,kind='cubic',bounds_error=False,fill_value="extrapolate")
             for i in range(start_index,stop_index):
-                self.set_waypoint_velocity(waypoints,i,min(cubic_fn(i),waypoints[i].twist.twist.linear.x))
-            for i in range(stop_index+1,LOOKAHEAD_WPS-1):
-                self.set_waypoint_velocity(waypoints,i,end_velocity)  
+                self.set_waypoint_velocity(waypoints,i,min(cubic_fn(i),waypoints[i].twist.twist.linear.x)) 
 
     def pose_cb(self, msg):
         self.pose = msg
