@@ -81,6 +81,7 @@ class WaypointUpdater(object):
             return
         if self.traffic_waypoint - self.closest_idx >= LOOKAHEAD_WPS:
             return
+        num_published = min(len(waypoints), LOOKAHEAD_WPS)
         if self.traffic_waypoint < 0:
             start_velocity = self.get_waypoint_velocity(waypoints[0])
             end_velocity = rospy.get_param('/waypoint_loader/velocity')*1000/3600 
@@ -101,6 +102,8 @@ class WaypointUpdater(object):
             cubic_fn = interp1d(pos,vel,kind='cubic',bounds_error=False,fill_value="extrapolate")
             for i in range(0,stop_index):
                 self.set_waypoint_velocity(waypoints,i,cubic_fn(i))
+            for i in range(stop_index + 1, num_published):
+                self.set_waypoint_velocity(waypoints, i, end_velocity)
         if self.traffic_waypoint - self.closest_idx > 8:
             local_waypoint = self.traffic_waypoint - self.closest_idx
             start_velocity = self.get_waypoint_velocity(waypoints[0])
@@ -118,7 +121,9 @@ class WaypointUpdater(object):
             vel = [start_velocity, start_velocity+vel_diff/4, start_velocity+vel_diff/2, start_velocity+vel_diff*3/4, end_velocity]
             cubic_fn = interp1d(pos,vel,kind='cubic',bounds_error=False,fill_value="extrapolate")
             for i in range(start_index,stop_index):
-                self.set_waypoint_velocity(waypoints,i,min(cubic_fn(i),waypoints[i].twist.twist.linear.x)) 
+                self.set_waypoint_velocity(waypoints,i,min(cubic_fn(i),waypoints[i].twist.twist.linear.x))
+            for i in range(stop_index + 1, num_published):
+                self.set_waypoint_velocity(waypoints, i, end_velocity)
 
     def pose_cb(self, msg):
         self.pose = msg
