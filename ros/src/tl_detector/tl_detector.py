@@ -180,7 +180,7 @@ class TLDetector(object):
             car_wp_idx = self.get_closest_waypoint(x_car, y_car)
 
             # Set maximum front distance to next traffic light
-            max_dist = self.range
+            max_dist = min(len(self.waypoints.waypoints), self.range)
             # or we can use max_dist = len(self.waypoints.waypoints)
 
             # Loop over list of traffic lights to check distance to the car
