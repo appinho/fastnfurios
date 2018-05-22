@@ -11,7 +11,7 @@ import math
 
 LOOKAHEAD_WPS = 200  # Number of waypoints we will publish. You can change this number
 MAX_ACC = 10  # Maximum acceleration
-
+KMH_TO_MS = 1.0 / 3.6
 
 class WaypointUpdater(object):
 
@@ -84,7 +84,7 @@ class WaypointUpdater(object):
         num_published = min(len(waypoints), LOOKAHEAD_WPS)
         if self.traffic_waypoint < 0:
             start_velocity = self.get_waypoint_velocity(waypoints[0])
-            end_velocity = rospy.get_param('/waypoint_loader/velocity')*1000/3600 
+            end_velocity = rospy.get_param('/waypoint_loader/velocity') * KMH_TO_MS
             start_index = 0
             stop_index = len(waypoints)-1
             distance_to_max_vel = self.distance(waypoints,start_index,stop_index)
