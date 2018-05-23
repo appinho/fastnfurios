@@ -1,5 +1,13 @@
 # Udacity SDC Final Project by FastnFurios
 
+## Team Members
+
+* Team Lead: Siddarth Kothiwale - kothiwale.siddharth@gmail.com
+* Team Member 1: Matthias Fischer - ma.fischer91@gmail.com
+* Team Member 2: Hiwad Aziz - hiwad.aziz@gmx.de
+* Team Member 3: Simon Appel - simonappel62@gmail.com
+* Team Member 4: Radek Novák - novak@designo.cz
+
 ## FastnFurios ReadMe
 
 ### System Architecture
